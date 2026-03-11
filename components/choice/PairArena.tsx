@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useMemo, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useSessionStore, selectCurrentValues } from '@/store/useSessionStore';
+import { useSessionStore } from '@/store/useSessionStore';
+import { VALUE_MAP } from '@/lib/catalog/values';
 import { ValueCard } from './ValueCard';
 import { ProgressHeader } from './ProgressHeader';
 
@@ -12,9 +13,18 @@ interface PairArenaProps {
 }
 
 export function PairArena({ onChoose, onUndo }: PairArenaProps) {
-  const currentValues = useSessionStore(selectCurrentValues);
+  const currentPair = useSessionStore(s => s.currentPair);
   const isLoading = useSessionStore(s => s.isLoading);
-  const pairKey = useSessionStore(s => s.currentPair?.join(',') ?? '');
+
+  const currentValues = useMemo(() => {
+    if (!currentPair) return null;
+    const a = VALUE_MAP.get(currentPair[0]);
+    const b = VALUE_MAP.get(currentPair[1]);
+    if (!a || !b) return null;
+    return { a, b };
+  }, [currentPair]);
+
+  const pairKey = currentPair?.join(',') ?? '';
 
   const handleChoose = useCallback(async (winnerId: number, loserId: number) => {
     if (isLoading) return;
