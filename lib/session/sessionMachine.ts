@@ -267,4 +267,47 @@ export async function undoChoice(
   return { scores, variances, ranking, valueScores, currentPair: nextPair, phase, selectorState };
 }
 
+/**
+ * Skip a pair: pick a new pair while suppressing the skipped pair from
+ * being immediately resurfaced. No comparison is recorded.
+ */
+export function skipPair(
+  prevSnapshot: EngineSnapshot,
+  comparisons: Comparison[],
+): EngineSnapshot {
+  // Add the skipped pair to recentPairs so selectPair avoids it
+  const skippedPair = prevSnapshot.currentPair;
+  const newRecent = [...prevSnapshot.selectorState.recentPairs, skippedPair].slice(-10);
+  const selectorState: PairSelectorState = {
+    ...prevSnapshot.selectorState,
+    recentPairs: newRecent,
+  };
+
+  const nextPair = selectPair(
+    selectorState,
+    comparisons,
+    prevSnapshot.scores,
+    prevSnapshot.variances,
+    prevSnapshot.ranking,
+  );
+
+  return {
+    ...prevSnapshot,
+    currentPair: nextPair,
+    selectorState,
+  };
+}
+
+/**
+ * Whether skip is allowed in the current phase.
+ * - mapping: always allowed (exploring, momentum matters)
+ * - refining: allowed up to 5 skips per session
+ * - locking: never allowed (need definitive answers)
+ */
+export function canSkip(phase: Phase, skipCount: number): boolean {
+  if (phase === 'mapping') return true;
+  if (phase === 'refining') return skipCount < 5;
+  return false; // locking or done
+}
+
 const PRIOR_VAR_SQRT = 1.25;

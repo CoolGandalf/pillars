@@ -1,6 +1,4 @@
-'use client';
-
-import { useEffect, useCallback, useMemo, useRef } from 'react';
+import { useEffect, useCallback, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useSessionStore } from '@/store/useSessionStore';
 import { VALUE_MAP } from '@/lib/catalog/values';
@@ -10,11 +8,14 @@ import { ProgressHeader } from './ProgressHeader';
 interface PairArenaProps {
   onChoose: (winnerId: number, loserId: number) => Promise<void>;
   onUndo: () => Promise<void>;
+  onSkip: () => Promise<void>;
 }
 
-export function PairArena({ onChoose, onUndo }: PairArenaProps) {
+export function PairArena({ onChoose, onUndo, onSkip }: PairArenaProps) {
   const currentPair = useSessionStore(s => s.currentPair);
   const isLoading = useSessionStore(s => s.isLoading);
+  const phase = useSessionStore(s => s.phase);
+  const skipCount = useSessionStore(s => s.skipCount);
 
   const currentValues = useMemo(() => {
     if (!currentPair) return null;
@@ -26,6 +27,9 @@ export function PairArena({ onChoose, onUndo }: PairArenaProps) {
 
   const pairKey = currentPair?.join(',') ?? '';
 
+  // Compute skip availability using same logic as sessionMachine.canSkip
+  const skipAllowed = phase === 'mapping' || (phase === 'refining' && skipCount < 5);
+
   const handleChoose = useCallback(async (winnerId: number, loserId: number) => {
     if (isLoading) return;
     await onChoose(winnerId, loserId);
@@ -35,17 +39,23 @@ export function PairArena({ onChoose, onUndo }: PairArenaProps) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (isLoading || !currentValues) return;
-      if (e.key === '1' || e.key === 'ArrowUp') {
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
         handleChoose(currentValues.a.id, currentValues.b.id);
-      } else if (e.key === '2' || e.key === 'ArrowDown') {
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
         handleChoose(currentValues.b.id, currentValues.a.id);
-      } else if (e.key === 'u' || e.key === 'U') {
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
         onUndo();
+      } else if (e.key === 'ArrowRight' && skipAllowed) {
+        e.preventDefault();
+        onSkip();
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [handleChoose, onUndo, isLoading, currentValues]);
+  }, [handleChoose, onUndo, onSkip, isLoading, currentValues, skipAllowed]);
 
   if (!currentValues) {
     return (
@@ -57,7 +67,7 @@ export function PairArena({ onChoose, onUndo }: PairArenaProps) {
 
   return (
     <div className="flex flex-col flex-1 w-full max-w-lg mx-auto px-4 pb-safe gap-4">
-      <ProgressHeader onUndo={onUndo} />
+      <ProgressHeader onUndo={onUndo} onSkip={onSkip} skipAllowed={skipAllowed} />
 
       {/* Prompt */}
       <p className="text-center text-stone-400 text-sm px-4">
@@ -98,7 +108,7 @@ export function PairArena({ onChoose, onUndo }: PairArenaProps) {
 
       {/* Keyboard hint (desktop) */}
       <p className="hidden sm:block text-center text-xs text-stone-600 pb-4">
-        Press 1 / 2 to choose · U to undo
+        ↑ / ↓ choose · ← undo · → skip
       </p>
     </div>
   );

@@ -12,6 +12,7 @@ interface SessionStore {
   currentPair: [number, number] | null;
   valueScores: ValueScore[];
   comparisonCount: number;
+  skipCount: number;
   canUndo: boolean;
   undoAvailableUntil: number | null; // timestamp
   isLoading: boolean;
@@ -20,6 +21,7 @@ interface SessionStore {
   // Actions
   setSession: (sessionId: string, snapshot: EngineSnapshot) => void;
   applySnapshot: (snapshot: EngineSnapshot, comparisonCount: number) => void;
+  incrementSkip: () => void;
   enableUndo: () => void;
   consumeUndo: () => void;
   setLoading: (loading: boolean) => void;
@@ -32,6 +34,7 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
   currentPair: null,
   valueScores: [],
   comparisonCount: 0,
+  skipCount: 0,
   canUndo: false,
   undoAvailableUntil: null,
   isLoading: false,
@@ -44,6 +47,7 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
       currentPair: snapshot.currentPair,
       valueScores: snapshot.valueScores,
       comparisonCount: 0,
+      skipCount: 0,
       canUndo: false,
       undoAvailableUntil: null,
       isLoading: false,
@@ -73,6 +77,10 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
     }, 3100);
   },
 
+  incrementSkip: () => {
+    set(s => ({ skipCount: s.skipCount + 1 }));
+  },
+
   consumeUndo: () => {
     set({ canUndo: false, undoAvailableUntil: null });
   },
@@ -85,6 +93,7 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
     currentPair: null,
     valueScores: [],
     comparisonCount: 0,
+    skipCount: 0,
     canUndo: false,
     undoAvailableUntil: null,
     isLoading: false,

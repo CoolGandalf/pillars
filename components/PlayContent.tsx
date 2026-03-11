@@ -11,7 +11,7 @@ export default function PlayContent() {
   const sessionIdParam = searchParams.get('session');
   const freshParam = searchParams.get('fresh');
 
-  const { setSession, applySnapshot, enableUndo, consumeUndo, setLoading, reset } = useSessionStore();
+  const { setSession, applySnapshot, enableUndo, consumeUndo, incrementSkip, setLoading, reset } = useSessionStore();
   const sessionIdRef = useRef<string | null>(null);
   const comparisonsRef = useRef<Comparison[]>([]);
   const snapshotRef = useRef<EngineSnapshot | null>(null);
@@ -110,6 +110,20 @@ export default function PlayContent() {
     }
   };
 
+  const handleSkip = async () => {
+    if (!sessionIdRef.current || !snapshotRef.current) return;
+
+    try {
+      const { skipPair } = await import('@/lib/session/sessionMachine');
+      const newSnapshot = skipPair(snapshotRef.current, comparisonsRef.current);
+      snapshotRef.current = newSnapshot;
+      applySnapshot(newSnapshot, comparisonsRef.current.filter(c => !c.undone).length);
+      incrementSkip();
+    } catch (err) {
+      console.error('Failed to skip:', err);
+    }
+  };
+
   if (!initialized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-stone-950">
@@ -120,7 +134,7 @@ export default function PlayContent() {
 
   return (
     <div className="min-h-screen flex flex-col bg-stone-950 py-4">
-      <PairArena onChoose={handleChoose} onUndo={handleUndo} />
+      <PairArena onChoose={handleChoose} onUndo={handleUndo} onSkip={handleSkip} />
     </div>
   );
 }

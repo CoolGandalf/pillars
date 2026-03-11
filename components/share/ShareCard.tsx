@@ -15,16 +15,16 @@ export function ShareCard({ value1, value2, top10, displayName }: ShareCardProps
       id="share-card"
       style={{
         width: 640,
-        height: 640,
+        minHeight: 640,
         background: 'linear-gradient(160deg, #1c1917 0%, #0f0d0c 100%)',
         borderRadius: 24,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 48,
+        padding: '40px 48px',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-        gap: 32,
+        gap: 24,
       }}
     >
       {/* Header */}
@@ -67,20 +67,23 @@ export function ShareCard({ value1, value2, top10, displayName }: ShareCardProps
       {/* Top 10 preview */}
       {top10 && top10.length > 2 && (
         <div style={{ width: '100%' }}>
-          <p style={{ color: '#57534e', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', margin: '0 0 10px' }}>
+          <p style={{ color: '#57534e', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', margin: '0 0 8px' }}>
             Top 10
           </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
             {top10.slice(2).map((v, i) => (
               <span
                 key={v.id}
                 style={{
                   background: '#1c1917',
                   border: '1px solid #292524',
-                  borderRadius: 20,
-                  padding: '4px 12px',
+                  borderRadius: 12,
+                  padding: '3px 10px',
                   color: '#a8a29e',
                   fontSize: 11,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
                 }}
               >
                 {i + 3}. {v.name}

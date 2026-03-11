@@ -1,13 +1,13 @@
-'use client';
-
 import { AnimatePresence, motion } from 'framer-motion';
 import { useSessionStore, selectProgress, selectPhaseLabel } from '@/store/useSessionStore';
 
 interface ProgressHeaderProps {
   onUndo: () => void;
+  onSkip: () => void;
+  skipAllowed: boolean;
 }
 
-export function ProgressHeader({ onUndo }: ProgressHeaderProps) {
+export function ProgressHeader({ onUndo, onSkip, skipAllowed }: ProgressHeaderProps) {
   const canUndo = useSessionStore(s => s.canUndo);
   const comparisonCount = useSessionStore(s => s.comparisonCount);
   const progress = useSessionStore(selectProgress);
@@ -19,7 +19,7 @@ export function ProgressHeader({ onUndo }: ProgressHeaderProps) {
         <span className="text-xs text-stone-400 font-medium tracking-wide uppercase">
           {phaseLabel}
         </span>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <span className="text-xs text-stone-500">{comparisonCount} choices</span>
 
           <AnimatePresence>
@@ -37,6 +37,15 @@ export function ProgressHeader({ onUndo }: ProgressHeaderProps) {
               </motion.button>
             )}
           </AnimatePresence>
+
+          {skipAllowed && (
+            <button
+              onClick={onSkip}
+              className="text-xs text-stone-500 hover:text-stone-300 px-2 py-1 transition-colors"
+            >
+              Skip
+            </button>
+          )}
         </div>
       </div>
 
