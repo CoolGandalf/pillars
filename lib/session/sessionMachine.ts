@@ -245,7 +245,8 @@ export async function recordChoice(
 export async function undoChoice(
   sessionId: string,
   comparisons: Comparison[],
-  prevSnapshot: EngineSnapshot
+  prevSnapshot: EngineSnapshot,
+  restorePair?: [number, number]
 ): Promise<EngineSnapshot | null> {
   const success = await undoLastComparison(sessionId);
   if (!success) return null;
@@ -256,7 +257,7 @@ export async function undoChoice(
   const activeComps = updatedComparisons.filter(c => !c.undone);
   const confidence = analyzeConfidence(scores, variances, activeComps);
   const phase = getPhase(updatedComparisons, selectorState.seenValues.size, confidence);
-  const nextPair = selectPair(selectorState, updatedComparisons, scores, variances, ranking);
+  const currentPair = restorePair ?? selectPair(selectorState, updatedComparisons, scores, variances, ranking);
   const valueScores = buildValueScores(scores, variances, ranking, updatedComparisons);
 
   const session = await getSession(sessionId);
@@ -264,7 +265,7 @@ export async function undoChoice(
     await saveSession({ ...session, phase, comparisonCount: activeComps.length, updatedAt: Date.now() });
   }
 
-  return { scores, variances, ranking, valueScores, currentPair: nextPair, phase, selectorState };
+  return { scores, variances, ranking, valueScores, currentPair, phase, selectorState };
 }
 
 /**

@@ -15,6 +15,7 @@ export default function PlayContent() {
   const sessionIdRef = useRef<string | null>(null);
   const comparisonsRef = useRef<Comparison[]>([]);
   const snapshotRef = useRef<EngineSnapshot | null>(null);
+  const prevPairRef = useRef<[number, number] | null>(null);
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
@@ -59,6 +60,7 @@ export default function PlayContent() {
     if (!sessionIdRef.current || !snapshotRef.current) return;
 
     setLoading(true);
+    prevPairRef.current = snapshotRef.current.currentPair;
     try {
       const { recordChoice } = await import('@/lib/session/sessionMachine');
       const { getComparisons } = await import('@/lib/storage/db');
@@ -94,14 +96,17 @@ export default function PlayContent() {
       const { undoChoice } = await import('@/lib/session/sessionMachine');
       const { getComparisons } = await import('@/lib/storage/db');
 
+      const restorePair = prevPairRef.current;
       const newSnapshot = await undoChoice(
         sessionIdRef.current,
         comparisonsRef.current,
-        snapshotRef.current
+        snapshotRef.current,
+        restorePair ?? undefined
       );
 
       if (!newSnapshot) return;
 
+      prevPairRef.current = null;
       comparisonsRef.current = await getComparisons(sessionIdRef.current);
       snapshotRef.current = newSnapshot;
       applySnapshot(newSnapshot, comparisonsRef.current.filter(c => !c.undone).length);
