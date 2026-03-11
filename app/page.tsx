@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { ClientOnly } from '@/components/common/ClientOnly';
 import type { Session } from '@/types/pillars';
 
 export default function WelcomePage() {
@@ -46,6 +47,9 @@ export default function WelcomePage() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center px-6 py-12 bg-stone-950">
+      <ClientOnly fallback={
+        <div className="w-full max-w-sm flex flex-col items-center gap-8 opacity-0" />
+      }>
       <motion.div
         className="w-full max-w-sm flex flex-col items-center gap-8"
         initial={{ opacity: 0, y: 16 }}
@@ -117,6 +121,7 @@ export default function WelcomePage() {
           <div className="w-full py-4 text-center text-stone-600 text-sm">Loading…</div>
         )}
       </motion.div>
+      </ClientOnly>
     </main>
   );
 }
