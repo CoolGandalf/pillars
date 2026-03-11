@@ -1,65 +1,122 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import type { Session } from '@/types/pillars';
+
+export default function WelcomePage() {
+  const router = useRouter();
+  const [existingSession, setExistingSession] = useState<Session | null>(null);
+  const [loaded, setLoaded] = useState(false);
+  const [starting, setStarting] = useState(false);
+
+  useEffect(() => {
+    async function checkForSession() {
+      try {
+        const { getMostRecentActiveSession } = await import('@/lib/storage/db');
+        const session = await getMostRecentActiveSession();
+        setExistingSession(session ?? null);
+      } catch {
+        // IndexedDB not available
+      } finally {
+        setLoaded(true);
+      }
+    }
+    checkForSession();
+  }, []);
+
+  const handleResume = () => {
+    if (starting || !existingSession) return;
+    setStarting(true);
+    router.push(`/play?session=${existingSession.id}`);
+  };
+
+  const handleBegin = () => {
+    if (starting) return;
+    setStarting(true);
+    router.push('/play');
+  };
+
+  const handleStartFresh = () => {
+    if (starting) return;
+    setStarting(true);
+    router.push('/play?fresh=1');
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="min-h-screen flex flex-col items-center justify-center px-6 py-12 bg-stone-950">
+      <motion.div
+        className="w-full max-w-sm flex flex-col items-center gap-8"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        {/* Brand */}
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-white tracking-tight mb-2">Pillars</h1>
+          <p className="text-stone-400 text-sm leading-relaxed max-w-xs">
+            Discover your core values through fast, honest tradeoffs.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* How it works */}
+        <div className="w-full space-y-3">
+          {[
+            { n: '1', text: "You'll see two values at a time." },
+            { n: '2', text: "Pick the one you'd protect if they conflicted." },
+            { n: '3', text: 'Your top 2 core values emerge.' },
+          ].map(item => (
+            <div key={item.n} className="flex items-start gap-3">
+              <span className="text-amber-500 font-mono text-sm font-bold flex-shrink-0 mt-0.5">
+                {item.n}
+              </span>
+              <p className="text-stone-300 text-sm leading-relaxed">{item.text}</p>
+            </div>
+          ))}
         </div>
-      </main>
-    </div>
+
+        <p className="text-stone-600 text-xs text-center">
+          ~130–170 choices · 5–7 minutes · no account needed
+        </p>
+
+        {/* CTAs */}
+        {loaded ? (
+          <div className="w-full space-y-3">
+            {existingSession ? (
+              <>
+                <button
+                  onClick={handleResume}
+                  disabled={starting}
+                  className="w-full py-4 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-stone-950 font-semibold rounded-2xl transition-colors disabled:opacity-60"
+                >
+                  Resume your run
+                  <span className="block text-xs font-normal opacity-70 mt-0.5">
+                    {existingSession.comparisonCount} choices made
+                  </span>
+                </button>
+                <button
+                  onClick={handleStartFresh}
+                  disabled={starting}
+                  className="w-full py-3 text-stone-400 hover:text-stone-300 text-sm transition-colors"
+                >
+                  Start fresh
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={handleBegin}
+                disabled={starting}
+                className="w-full py-4 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-stone-950 font-semibold rounded-2xl transition-colors disabled:opacity-60"
+              >
+                {starting ? 'Starting…' : 'Begin'}
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="w-full py-4 text-center text-stone-600 text-sm">Loading…</div>
+        )}
+      </motion.div>
+    </main>
   );
 }
