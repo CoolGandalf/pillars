@@ -1,6 +1,8 @@
 'use client';
 
-import { v4 as uuidv4 } from 'uuid';
+function uuidv4(): string {
+  return crypto.randomUUID();
+}
 import type { Session, Comparison, ResultSnapshot, ValueScore, Phase } from '@/types/pillars';
 import { N } from '@/lib/catalog/values';
 import { mapEstimate, laplaceVariances, getRanking, topKProb, posteriorRankProbs } from '@/lib/ranking/btl';
