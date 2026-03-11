@@ -1,12 +1,10 @@
-'use client';
-
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import type { Session } from '@/types/pillars';
 
 export default function WelcomeContent() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [existingSession, setExistingSession] = useState<Session | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [starting, setStarting] = useState(false);
@@ -29,19 +27,19 @@ export default function WelcomeContent() {
   const handleResume = () => {
     if (starting || !existingSession) return;
     setStarting(true);
-    router.push(`/play?session=${existingSession.id}`);
+    navigate(`/play?session=${existingSession.id}`);
   };
 
   const handleBegin = () => {
     if (starting) return;
     setStarting(true);
-    router.push('/play');
+    navigate('/play');
   };
 
   const handleStartFresh = () => {
     if (starting) return;
     setStarting(true);
-    router.push('/play?fresh=1');
+    navigate('/play?fresh=1');
   };
 
   return (

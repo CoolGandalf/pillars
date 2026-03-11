@@ -1,15 +1,13 @@
-'use client';
-
 import { useEffect, useRef, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PairArena } from '@/components/choice/PairArena';
 import { useSessionStore } from '@/store/useSessionStore';
 import type { EngineSnapshot } from '@/lib/session/sessionMachine';
 import type { Comparison } from '@/types/pillars';
 
 export default function PlayContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const sessionIdParam = searchParams.get('session');
   const freshParam = searchParams.get('fresh');
 
@@ -76,7 +74,7 @@ export default function PlayContent() {
       snapshotRef.current = result.snapshot;
 
       if (result.done) {
-        router.push(`/results?session=${sessionIdRef.current}`);
+        navigate(`/results?session=${sessionIdRef.current}`);
         return;
       }
 

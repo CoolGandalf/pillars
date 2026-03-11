@@ -1,7 +1,5 @@
-'use client';
-
 import { useEffect, useState, useRef } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { HeroPillars } from '@/components/results/HeroPillars';
 import { Top25List } from '@/components/results/Top25List';
@@ -16,8 +14,8 @@ interface ResultsState {
 }
 
 export default function ResultsContent() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const sessionId = searchParams.get('session');
 
   const [results, setResults] = useState<ResultsState | null>(null);
@@ -26,7 +24,7 @@ export default function ResultsContent() {
 
   useEffect(() => {
     if (!sessionId) {
-      router.push('/');
+      navigate('/');
       return;
     }
 
@@ -35,7 +33,7 @@ export default function ResultsContent() {
         const { getResult } = await import('@/lib/storage/db');
         const snapshot = await getResult(sessionId!);
         if (!snapshot) {
-          router.push('/');
+          navigate('/');
           return;
         }
 
@@ -48,11 +46,11 @@ export default function ResultsContent() {
         setResults({ snapshot, hero, top25Values });
       } catch (err) {
         console.error('Failed to load results:', err);
-        router.push('/');
+        navigate('/');
       }
     }
     load();
-  }, [sessionId, router]);
+  }, [sessionId, navigate]);
 
   const handleShare = async () => {
     if (!results || sharing) return;
@@ -128,7 +126,7 @@ export default function ResultsContent() {
           className="pb-8"
         >
           <button
-            onClick={() => router.push('/play?fresh=1')}
+            onClick={() => navigate('/play?fresh=1')}
             className="w-full py-3 text-stone-600 hover:text-stone-400 text-sm transition-colors"
           >
             Start a new run

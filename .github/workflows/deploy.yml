@@ -34,7 +34,7 @@ jobs:
       # GitHub Pages SPA fallback: copy index.html to 404.html
       # so direct navigation to /play or /results?session=... works
       - name: Create 404 fallback
-        run: cp out/index.html out/404.html
+        run: cp dist/index.html dist/404.html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
